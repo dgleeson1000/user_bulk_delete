@@ -22,6 +22,31 @@ function user_bulk_delete_menu() {
 }
 
 
+
+
+function print_field($user_field,$entity, &$output_string){
+     $user_field_name = $user_field['field_name'] ;
+     $user_field_label = $user_field['label'];
+     $field_values = field_get_items('user', $entity, $user_field_name);
+     if (is_array($field_values)){
+         foreach($field_values as $field_value_index ){
+             $field_value_index_type = gettype($field_value_index);
+             if ($field_value_index_type != "object") {
+                 if (isset($field_value_index['value'])){                  
+                     $field_value = $field_value_index['value'];
+                     $output_string .= "<br>" . $user_field_label . " : " ;
+                     $output_string .= $field_value;
+                 }
+                 else{
+                                      
+                 }
+             }
+         }
+     }
+}
+
+
+
 /**
  * Menu callback.
  * Called when user goes to http://example.com/user_bulk_delete 
@@ -37,70 +62,31 @@ function user_bulk_delete_page(){
     // loop throught the users on the system
     foreach($users as $user) {        
     // check that they are a registerd user
-    if (array_key_exists(2, $user->roles)) {
-        // check that their status is blocked
-        if ($user->access == "0"){
-            // add name and email address to output string
-            $user_name = $user->name;
-            $addr_line_1 = $user->field_address_line_1;
-            $output_string .= "<br><br>Username : " . $user->name;
-            $output_string .= "<br>Email : " . $user->mail;
+        if (array_key_exists(2, $user->roles)) {
+            // check that their status is blocked
+            if ($user->access == "0"){
+                // add name and email address to output string
+                $user_name = $user->name;
+                $addr_line_1 = $user->field_address_line_1;
+                $output_string .= "<br><br>Username : " . $user->name;
+                $output_string .= "<br>Email : " . $user->mail;
             
             
         
-            // load entity information for this uid
-            $entity = entity_load_single('user', $user->uid);
-            // load all field collection fields onto the entity
-            load_all_fc_fields('user', $entity);
-            // loop th
-            foreach($user_fields['user'] as $user_field){
-                $user_field_name = $user_field['field_name'] ;
-                $user_field_label = $user_field['label'];
+                // load entity information for this uid
+                $entity = entity_load_single('user', $user->uid);
+                // load all field collection fields onto the entity
+                load_all_fc_fields('user', $entity);
+                // loop th
+                foreach($user_fields['user'] as $user_field){
+                    print_field($user_field, $entity, $output_string);
                
-                
-                
-                $field_values = field_get_items('user', $entity, $user_field_name);
-                if (is_array($field_values)){
-                    foreach($field_values as $field_value_index ){
-                        $field_value_index_type = gettype($field_value_index);
-                        if ($field_value_index_type != "object") {
-                        
-                    
-                            if (isset($field_value_index['value'])){                  
-                                $field_value = $field_value_index['value'];
-                                $output_string .= "<br>" . $user_field_label . " : " ;
-                                $output_string .= $field_value;
-                            }
-                        else{
-                        
-                        
-                            }
-                        }
-                    }
                 }
-               
+            }    
         }
-    }    
-  }
-}
+    }
 
-
-    //$rendered_value = render($value);
-
-
-
-
-   
-    
-    
-    
-
-
-
-
-
-
-return $output_string;
+    return $output_string;
     // Return the HTML generated from the $form data structure 
     // return drupal_get_form('user_bulk_delete_form');
     
