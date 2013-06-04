@@ -1,0 +1,5 @@
+;$Id$
+name = User Bulk Delete
+description = Lists user registration details including added fields and allows for bulk delete to cope with spam registrations
+package = User
+core = 7.x
