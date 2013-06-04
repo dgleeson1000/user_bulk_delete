@@ -38,6 +38,8 @@ function print_field($user_field,$entity, &$output_string){
                      $output_string .= $field_value;
                  }
                  else{
+                     
+                     print_field($user_field,$entity, &$output_string);
                                       
                  }
              }
@@ -79,7 +81,7 @@ function user_bulk_delete_page(){
                 load_all_fc_fields('user', $entity);
                 // loop th
                 foreach($user_fields['user'] as $user_field){
-                    print_field($user_field, $entity, $output_string);
+                   
                
                 }
             }    
