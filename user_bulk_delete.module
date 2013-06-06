@@ -24,28 +24,70 @@ function user_bulk_delete_menu() {
 
 
 
-function print_field($user_field,$entity, &$output_string){
+function print_field($uid, $user_field,$entity, &$output_string){
      $user_field_name = $user_field['field_name'] ;
      $user_field_label = $user_field['label'];
      $field_values = field_get_items('user', $entity, $user_field_name);
      if (is_array($field_values)){
          foreach($field_values as $field_value_index ){
              $field_value_index_type = gettype($field_value_index);
+
              if ($field_value_index_type != "object") {
-                 if (isset($field_value_index['value'])){                  
+                     if (isset($field_value_index['value'])){                  
                      $field_value = $field_value_index['value'];
                      $output_string .= "<br>" . $user_field_label . " : " ;
                      $output_string .= $field_value;
                  }
-                 else{
-                     
-                     print_field($user_field,$entity, &$output_string);
+                 
+             }
+             else{ 
+                 
+                 $field_collection = entity_load('field_collection_item',$field_value_index['value']);
+               $wer = 234 ;
+                  /*  
+                
+                   $fc_fields = field_get_items('user', $entity, $user_field_name);
+                  
+
+                    // Extract the field collection item ids
+                    $ids = array();
+                    foreach ($fc_fields as $fc_field) {
+                        $ids[] = $fc_field['value'];
+                    }
+
+                    //Get the entities
+                    $collections = field_collection_item_load_multiple($ids);
+
+                    //Loop over the array - if you have more than one entity
+                    for ($i = 1; $i <= sizeof($collections); $i++) {
+                        $collection = $collections [$i];
+
+                        //Iterate over all member vars of the FieldCollectionItemEntity object
+                        foreach($collection as $key => $value) {
+                        //Look for fields - there are some other class vars, too.
+                            if (strpos ($key, 'field') !== false) {
+                                //Search for textfields 
+                                if (isset($value['und']) && is_array($value ['und']) && isset($value['und'][0]['value'])) {
+                                    print "Field ".$key." ".$value['und'][0]['value'];
+                                }
+                            }
+                        }                   
+                    } 
+
+*/
                                       
                  }
-             }
          }
      }
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -64,6 +106,9 @@ function user_bulk_delete_page(){
     // loop throught the users on the system
     foreach($users as $user) {        
     // check that they are a registerd user
+        //debug
+       
+        
         if (array_key_exists(2, $user->roles)) {
             // check that their status is blocked
             if ($user->access == "0"){
@@ -78,10 +123,10 @@ function user_bulk_delete_page(){
                 // load entity information for this uid
                 $entity = entity_load_single('user', $user->uid);
                 // load all field collection fields onto the entity
-                load_all_fc_fields('user', $entity);
+                //load_all_fc_fields('user', $entity);
                 // loop th
                 foreach($user_fields['user'] as $user_field){
-                   
+                   print_field($user->uid, $user_field, $entity, $output_string);
                
                 }
             }    
