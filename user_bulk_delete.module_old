@@ -1,0 +1,252 @@
+<?php
+
+//$Id$
+
+/**
+ * @file 
+ * Form that lists user registration details including added fields 
+ * and allow for bulk deletion to cope with spam registrations
+ */
+
+
+/**
+ * Implementation of hook_menu().
+ */
+function user_bulk_delete_menu() {
+    $items['user_bulk_delete'] = array(
+        'title' => 'Bulk Delete Users', 
+        'page callback' => 'user_bulk_delete_page',
+        'access arguments' => array('access content'),
+    );
+    return $items;
+}
+
+
+
+
+function print_field($uid, $user_field,$entity, &$output_string){
+     $user_field_name = $user_field['field_name'] ;
+     $user_field_label = $user_field['label'];
+     $field_values = field_get_items('user', $entity, $user_field_name);
+     if (is_array($field_values)){
+         foreach($field_values as $field_value_index ){
+             $field_value_index_type = gettype($field_value_index);
+
+             if ($field_value_index_type != "object") {
+                     if (isset($field_value_index['value'])){                  
+                     $field_value = $field_value_index['value'];
+                     $output_string .= "<br>" . $user_field_label . " : " ;
+                     $output_string .= $field_value;
+                 }
+                 
+             }
+             else{ 
+                 
+                 $field_collection = entity_load('field_collection_item',$field_value_index['value']);
+               $wer = 234 ;
+                  /*  
+                
+                   $fc_fields = field_get_items('user', $entity, $user_field_name);
+                  
+
+                    // Extract the field collection item ids
+                    $ids = array();
+                    foreach ($fc_fields as $fc_field) {
+                        $ids[] = $fc_field['value'];
+                    }
+
+                    //Get the entities
+                    $collections = field_collection_item_load_multiple($ids);
+
+                    //Loop over the array - if you have more than one entity
+                    for ($i = 1; $i <= sizeof($collections); $i++) {
+                        $collection = $collections [$i];
+
+                        //Iterate over all member vars of the FieldCollectionItemEntity object
+                        foreach($collection as $key => $value) {
+                        //Look for fields - there are some other class vars, too.
+                            if (strpos ($key, 'field') !== false) {
+                                //Search for textfields 
+                                if (isset($value['und']) && is_array($value ['und']) && isset($value['und'][0]['value'])) {
+                                    print "Field ".$key." ".$value['und'][0]['value'];
+                                }
+                            }
+                        }                   
+                    } 
+
+*/
+                                      
+                 }
+         }
+     }
+}
+
+
+
+
+
+
+
+
+
+
+
+/**
+ * Menu callback.
+ * Called when user goes to http://example.com/user_bulk_delete 
+ */
+
+function user_bulk_delete_page(){ 
+    // get list of fields for 'user' entity type
+    $user_fields = field_info_instances('user');
+    // get all the users on the system
+    $users = entity_load('user');
+    // initialise our output string that we willl return
+    $output_string = '';
+    // loop throught the users on the system
+    foreach($users as $user) {        
+    // check that they are a registerd user
+        //debug
+       
+        
+        if (array_key_exists(2, $user->roles)) {
+            // check that their status is blocked
+            if ($user->access == "0"){
+                // add name and email address to output string
+                $user_name = $user->name;
+                $addr_line_1 = $user->field_address_line_1;
+                $output_string .= "<br><br>Username : " . $user->name;
+                $output_string .= "<br>Email : " . $user->mail;
+            
+            
+        
+                // load entity information for this uid
+                $entity = entity_load_single('user', $user->uid);
+                // load all field collection fields onto the entity
+                //load_all_fc_fields('user', $entity);
+                // loop th
+                foreach($user_fields['user'] as $user_field){
+                   print_field($user->uid, $user_field, $entity, $output_string);
+               
+                }
+            }    
+        }
+    }
+
+    return $output_string;
+    // Return the HTML generated from the $form data structure 
+    // return drupal_get_form('user_bulk_delete_form');
+    
+    
+}
+
+
+/**
+ * Define the form. 
+ */
+function user_bulk_delete_form(){
+    $form['user_name']= array(
+        '#title' => t('Your Name'),
+        '#type' => 'textfield',
+        '#description' => t('Please enter your name.'),
+    );
+    $form['submit'] = array(
+            '#type' => 'submit',
+            '#value' => t('Submit')
+    );
+    return $form;        
+}
+
+/**
+ * Validate the form. 
+ */
+function user_bulk_delete_form_validate($form, &$form_state){
+    if ($form_state['values']['user_name'] == 'King Kong') {
+        // We notify the form API that this field has failed validation.
+        form_set_error('user_name', t('King Kong is not allowed to use this form.'));
+    }
+}
+
+/**
+ * Handle post validation form submission.
+ */
+function user_bulk_delete_form_submit($form, &$form_state){
+    $name = $form_state['values']['user_name'];
+    drupal_set_message(t('Thanks for filling out the form, %name',
+            array('%name' => $name)));
+}
+
+
+
+
+
+
+
+/**
+* Recursively replaces all references to field collection entities with the actual field collection entity
+*
+* @param $entity_type
+* @param $entity
+* @param string $language
+*/
+function load_all_fc_fields($entity_type, &$entity, $language = LANGUAGE_NONE){
+  $field_info_instances = field_info_instances();
+
+  // Search for all fields of $entity that are of the type field_collection_item
+  // and operate on them
+  foreach($field_info_instances['field_collection_item'] as $field_name => $field_info){
+    if(isset($entity->{$field_name})){
+      load_fc_field($entity_type, $entity, $field_name, $language = LANGUAGE_NONE);
+    }
+  }
+}
+
+/**
+* Replaces references to field collection entities with the actual field collection entity
+*
+* Recursive for all child fields of $fc_field that are also field collections
+*
+* @param $entity_type Type of $entity
+* @param $entity By reference, the entity being operated on
+* @param $fc_field Name of field to replace references in
+* @param string $language
+*/
+function load_fc_field($entity_type, &$entity, $fc_field, $language = LANGUAGE_NONE){
+  $entity_wrapper = entity_metadata_wrapper($entity_type, $entity);
+  $fc_items = $entity_wrapper->{$fc_field}->value();
+  if (!is_array($fc_items)) {
+    $fc_items = array($fc_items);
+  }
+
+  $field_info_instances = field_info_instances();
+  $field_names = element_children($field_info_instances['field_collection_item'][$fc_field]);
+
+  
+  // these two lines added by Dave Gleeson to eliminate drupal warning messages
+  if(isset($entity->{$fc_field}[$language])){
+    if(is_array($entity->{$fc_field}[$language])){
+   
+        // This is where the references to field collection ids is changed to the
+        // actual loaded entity
+        foreach($entity->{$fc_field}[$language] as $item_key => &$item){
+            $item = $fc_items[$item_key];
+        }
+    }
+  }
+
+  foreach ($fc_items as $fc_item) {
+    $fc_item_wrapper = entity_metadata_wrapper('field_collection_item', $fc_item);
+
+    // Now check if any of the fields in the newly cloned fc item is a field collection
+    // and recursively call this function to properly populate.
+    foreach ($field_names as $field_name) {
+        if (!empty($fc_item->{$field_name})){
+            $field_info = field_info_field($field_name);
+            if ($field_info['type'] == 'field_collection'){
+              load_fc_field('field_collection_item',$fc_item, $field_name,$language);
+            }
+        }
+    }
+
+  }
+}
