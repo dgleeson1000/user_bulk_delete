@@ -172,26 +172,17 @@ function user_bulk_delete_page(){
  * Define the form. 
  */
 function user_bulk_delete_form(){
-    $count = 0;
-    while($count<10){
-        
-        $form_item_string = 'user_name_' . $count ;
-        $form[$form_item_string]= array(
-           
-            '#title' => t('Name number @count',array('@count'=>$count)),
-            '#type' => 'textfield',
-            '#description' => t('Please enter the name of @count.', array('@count'=>$count)),
-        );
-        $count++;
-    }
+    $form['user_name']= array(
+        '#title' => t('Your Name'),
+        '#type' => 'textfield',
+        '#description' => t('Please enter your name.'),
+    );
     $form['submit'] = array(
-        '#type' => 'submit',
-        '#value' => t('Submit'),
-     );
-    
+            '#type' => 'submit',
+            '#value' => t('Submit')
+    );
     return $form;        
 }
-
 
 /**
  * Validate the form. 

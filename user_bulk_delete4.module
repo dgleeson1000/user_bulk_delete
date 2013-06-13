@@ -1,0 +1,81 @@
+<?php
+
+//$Id$
+
+/**
+ * @file 
+ * Form that lists user registration details including added fields 
+ * and allow for bulk deletion to cope with spam registrations
+ */
+
+
+/**
+ * Implementation of hook_menu().
+ */
+function user_bulk_delete_menu() {
+    $items['user_bulk_delete'] = array(
+        'title' => 'Bulk Delete Users', 
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('user_bulk_delete_form'),
+        'access arguments' => array('administer_user'),
+        
+    );
+    return $items;
+}
+
+/**
+ * Menu callback.
+ * Called when user goes to http://example.com/user_bulk_delete 
+ */
+
+function user_bulk_delete_page(){
+    $output = t('This Page Contains Our Bulk Delete Form');
+    
+    // Return the HTML generated from the $form data structure
+    $output .= drupal_get_form('user_bulk_delete_form');
+    return $output;
+}
+
+
+/**
+ * Define the form. 
+ */
+function user_bulk_delete_form(){
+    $count = 0;
+    while($count<10){
+        
+        $form_item_string = 'user_name_' . $count ;
+        $form[$form_item_string]= array(
+           
+            '#title' => t('Name number @count',array('@count'=>$count)),
+            '#type' => 'textfield',
+            '#description' => t('Please enter the name of @count.', array('@count'=>$count)),
+        );
+        $count++;
+    }
+    $form['submit'] = array(
+        '#type' => 'submit',
+        '#value' => t('Submit'),
+     );
+    
+    return $form;        
+}
+
+/**
+ * Validate the form. 
+ */
+function user_bulk_delete_form_validate($form, &$form_state){
+    if ($form_state['values']['user_name'] == 'King Kong') {
+        // We notify the form API that this field has failed validation.
+        form_set_error('user_name', t('King Kong is not allowed to use this form.'));
+    }
+}
+
+/**
+ * Handle post validation form submission.
+ */
+function user_bulk_delete_form_submit($form, &$form_state){
+    $name = $form_state['values']['user_name'];
+    drupal_set_message(t('Thanks for filling out the form, %name',
+            array('%name' => $name)));
+}
